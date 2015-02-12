@@ -13,8 +13,6 @@
 /// 
 /// This imports the Target classes (ScoredTarget/TestTarget/IOTarget)
 import 'helpers.dart';
-/// Needed for I/O files
-import 'dart:io';
 
 /// Name displayed to students when running the autograder
 /// This is not required, only the owner, id, and repo
@@ -65,9 +63,9 @@ final List<String> files = ["Sample.java"];
 /// completed implementations as part of your tests. You can
 /// use a different tests.dart for tests you run on submissions.
 List<Target> getTargets(){
-    IOTarget test1 = IOTarget.makeJavaWithArgs("Addition", "Sample", "add 7 3", "", "10.0");
-    IOTarget test2 = IOTarget.makeJavaWithArgs("Subtraction", "Sample", "subtract 7 3", "", "4.0");
-    IOTarget test3 = IOTarget.makeJavaWithArgs("Multiplication", "Sample", "multiply 7 3", "", "21.0");
-    IOTarget test4 = IOTarget.makeJavaWithArgs("Division", "Sample", "divide 16 4", "", "4.0");
-    return [test1, test2, test3, test4];
+    InputOutput io1 = new InputOutput.withArgs("Addition", "add 7 3", "10.0");
+    InputOutput io2 = new InputOutput.withArgs("Subtraction", "subtract 7 3", "4.0");
+    InputOutput io3 = new InputOutput.withArgs("Multiplication", "multiply 7 3", "21.0");
+    InputOutput io4 = new InputOutput.withArgs("Division", "divide 16 4", "4.0");
+    return IOTarget.makeMultiJava("Sample", [io1, io2, io3, io4]);
 }

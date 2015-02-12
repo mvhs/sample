@@ -99,30 +99,6 @@ main(){
         };
     }
 
-    static IOTarget makeJavaWithArgs(String name, String mainClass, var args, String input, 
-                        String output, [List<String> otherClasses]){
-        List<String> pre = ["javac $mainClass.java"];
-        List<String> post = ["rm $mainClass.class"];
-        String command = "java $mainClass";
-        if(args is String){
-            command += " $args";
-        }else{
-            for(String arg in args) command += " $arg";
-        }
-        if(otherClasses != null){
-            for(String str in otherClasses){
-                pre.add("javac $str.java");
-                post.add("rm $str.class");
-            }
-        }
-        return new IOTarget(name, command, input, output, pre, post);
-    }
-
-    static IOTarget makeJava(String name, String mainClass, String input, 
-                        String output, [List<String> otherClasses]){
-        return makeJavaWithArgs(name, mainClass, "", input, output, otherClasses);
-    }
-
     runCommand(String command){
         var parts = command.split(" ");
         var exe = parts.removeAt(0);
@@ -131,4 +107,60 @@ main(){
         }
         Process.runSync(exe, parts, runInShell:true);
     }
+
+    /// Generates a single IOTarget for a Java program
+    static IOTarget makeJava(String mainClass, InputOutput io){
+        String pre = "javac $mainClass.java";
+        String command = "java $mainClass";
+        if(io.args != null) command += " ${io.args}";
+        return new IOTarget(io.name, command, input, output, pre);
+    }
+
+    /// Generates multiple IOTargets for a single Java program
+    /// Only compiles when the first target is run
+    static List<IOTarget> makeMultiJava(String mainClass, List<InputOutput> ios){
+        List<IOTarget> targets = [];
+        for(InputOutput io in ios){
+            String pre = null;
+            if(targets.length==0) pre = "javac $mainClass.java";
+            String command = "java $mainClass";
+            if(io.args!=null) command += " ${io.args}";
+            targets.add(new IOTarget(io.name, command, io.input, io.output, pre));
+        }
+        return targets;
+    }
+
+    /// (e.g.) make("python3 square.py", new InputOutput("Test","4","16"))
+    static IOTarget make(String command, InputOutput io){
+        if(io.args != null) command += "${io.args}";
+        return new IOTarget(io.name, command, io.input, io.output);
+    }
+
+    static List<IOTarget> makeMulti(String command, List<InputOutput> ios){
+        List<IOTarget> targets = [];
+        for(InputOutput io in ios){
+            targets.add(make(command, io));
+        }
+        return targets;
+    }
+}
+
+/// This class is used to represent some combination
+/// of arguments, input, and expected output
+class InputOutput{
+    /// These can be Strings or Files
+    var input = "";
+    var output;
+
+    /// This is arguments on the command, separated by spaces
+    String args;
+
+    /// This is the name of the test for this InputOutput
+    String name;
+
+    InputOutput(this.name, this.input, this.output);
+
+    InputOutput.withArgsInput(this.name, this.args, this.input, this.output);
+
+    InputOutput.withArgs(this.name, this.args, this.output);
 }
